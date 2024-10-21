@@ -2,7 +2,13 @@
 //(класса 3 – 4, из них хотя бы один класс должен являться наследником другого класса)
 // Вариант - 1 : Библиотека
 
-// Определяем интерфейс IBook
+// Интерфейс для пользователя библиотеки
+type IBookUser =
+    abstract member Name: string
+    abstract member Role: string
+    abstract member PrintUserDetails: unit -> unit
+
+// Интерфейс IBook
 type IBook =
     abstract member GetTitle: unit -> string
     abstract member GetAuthor: unit -> string
@@ -56,10 +62,43 @@ type Library() =
     member this.PrintAllBooks() =
         books |> List.iter (fun book -> book.PrintDetails())
 
+// Класс для библиотекаря, реализующий интерфейс IBookUser
+type Librarian(name: string) =
+    member this.Name = name
+
+    interface IBookUser with
+        member this.Name = this.Name
+        member this.Role = "Librarian"
+        member this.PrintUserDetails() =
+            printfn "Librarian: %s" this.Name
+
+    // Метод для добавления книг в библиотеку
+    member this.AddBookToLibrary (library: Library) (book: IBook) =
+        printfn "Librarian %s adds a book to the library." this.Name
+        library.AddBook(book)
+
+// Класс для читателя, реализующий интерфейс IBookUser
+type Reader(name: string) =
+    member this.Name = name
+
+    interface IBookUser with
+        member this.Name = this.Name
+        member this.Role = "Reader"
+        member this.PrintUserDetails() =
+            printfn "Reader: %s" this.Name
+
+    // Метод для чтения информации о книгах
+    member this.ViewBooks (library: Library) =
+        printfn "%s is viewing books in the library." this.Name
+        library.PrintAllBooks()
+
 // Пример использования
 let main() =
     // Создаем библиотеку
     let library = Library()
+
+    // Создаем библиотекаря
+    let librarian = Librarian("Alice")
 
     // Создаем печатную книгу
     let printedBook = PrintedBook("The Catcher in the Rye", "J.D. Salinger", 277) :> IBook
@@ -67,12 +106,15 @@ let main() =
     // Создаем электронную книгу
     let eBook = EBook("1984", "George Orwell", 1.25) :> IBook
 
-    // Добавляем книги в библиотеку
-    library.AddBook(printedBook)
-    library.AddBook(eBook)
+    // Библиотекарь добавляет книги в библиотеку
+    librarian.AddBookToLibrary library printedBook
+    librarian.AddBookToLibrary library eBook
 
-    // Печатаем информацию о всех книгах в библиотеке
-    library.PrintAllBooks()
+    // Создаем читателя
+    let reader = Reader("Bob")
+
+    // Читатель просматривает все книги в библиотеке
+    reader.ViewBooks library
 
 // Запускаем пример
 main()
